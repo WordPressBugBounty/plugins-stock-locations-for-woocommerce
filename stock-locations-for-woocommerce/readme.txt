@@ -1,10 +1,10 @@
 === Stock Locations for WooCommerce ===
-Contributors: fahadmahmood,alexmigf
+Contributors: fahadmahmood,alexmigf,invoicepress
 Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 2.7.4
+Stable tag: 2.7.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -160,6 +160,9 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 2.7.5 =
+Fix: when metadata is missing for a stock location quantity is an empty string instead of 0 and $remainingQty - '' is causing this error. https://github.com/fahadmahmood8/stock-locations-for-woocommerce/issues/161 [Thanks to @pintend][22/10/2024]
+
 = 2.7.4 =
 - Fix: Number of products to update on admin_init reduced to 25 from 50 and made it conditional with if cron is OFF. [Thanks to Simon][14/06/2024]
 
