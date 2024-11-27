@@ -4,7 +4,7 @@ Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 2.7.5
+Stable tag: 2.7.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,15 @@ This plugin requires at least *WooCommerce 3.4*.
 
 
 == Frequently Asked Questions ==
+
+= Problems with wp all import? = 
+
+**&#128073; 1.  How can we make them activate automatically during the import process?**
+
+If you want to make them active, in Import settings check "Taxonomies (incl. Categories and Tags)",
+under this chose "Update only these taxonomies, leave the rest alone" and type "location"
+
+Use this with "custom fields: _stock_at_xxx" as warehouse number and import works perfectly.
 
 = Stock Locations | Stock Deductions | Settings and Results =
 
@@ -160,6 +169,11 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 2.7.6 =
+New: Logs can be enabled and disabled with a toggle button.  [Thanks to @AntOnKnee][24/10/2024]
+New: High-Performance Order Storage (HPOS).
+Fix: https://wordpress.org/support/topic/orders-are-not-deducting-stock-from-my-stores [Thanks to @undermix and @amyhwang][27/11/2024]
+
 = 2.7.5 =
 Fix: when metadata is missing for a stock location quantity is an empty string instead of 0 and $remainingQty - '' is causing this error. https://github.com/fahadmahmood8/stock-locations-for-woocommerce/issues/161 [Thanks to @pintend][22/10/2024]
 
