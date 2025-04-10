@@ -4,7 +4,7 @@ Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 2.8.5
+Stable tag: 2.8.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -169,6 +169,9 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 2.8.6 =
+API related else case message added. [Thanks to Fawad Tiemoerie / commercebird.com][10/04/2025]
+
 = 2.8.5 =
 Products with zero stock won't appear on archive pages if you are using location taxonomy archive page. [Thanks to Anna Pantelakaki / balloon.gr][06/04/2025]
 
