@@ -4,7 +4,7 @@ Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 2.8.9
+Stable tag: 2.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -169,12 +169,15 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 2.9.0 =
+* Fix: Textdomain related issue resolved finally through loading it under constructor. [Thanks to Yeison Quesada][31/07/2025]
+
 = 2.8.9 =
-*New: Custom function wc_slw_order_update_post_meta updated and implemented for HPOS compatibility. [Thanks to webairstudio][26/07/2025]
+* New: Custom function wc_slw_order_update_post_meta updated and implemented for HPOS compatibility. [Thanks to webairstudio][26/07/2025]
 
 = 2.8.8 =
 Redundant code and/or not used by WooCommerce core, https://github.com/fahadmahmood8/stock-locations-for-woocommerce/issues/165 [Thanks to mvrijs][11/07/2025]
-Fix: Conditional usage of PHP function slw_get_products_by_location_term_id in the free version. [Thanks to Justin Trevorrow / Ironistic  |  Technical Manager][26/07/2025]
+Fix: Conditional usage of PHP function slw_get_products_by_location_term_id in the free version. [Thanks to Justin Trevorrow / Ironistic  |  Technical Manager, Paras Lamba / Team Shopglu.][26/07/2025]
 
 = 2.8.6 =
 API related else case message added. [Thanks to Fawad Tiemoerie / commercebird.com][10/04/2025]
