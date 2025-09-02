@@ -4,7 +4,7 @@ Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 2.9.3
+Stable tag: 2.9.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -169,6 +169,9 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 2.9.4 =
+* Fix: Recursive function causing stock status loop. [Thanks to Claudio Lanfranchi | SYPRO][01/09/2025]
+
 = 2.9.3 =
 * Fix: PHP Warning: array_sum() https://wordpress.org/support/topic/php-warning-array_sum. [Thanks to @tushonline][31/07/2025]
 
