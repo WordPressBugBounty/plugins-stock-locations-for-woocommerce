@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       		Stock Locations for WooCommerce
  * Description:       		This plugin will help you to manage WooCommerce Products stocks through locations.
- * Version:					2.9.6
+ * Version:					2.9.8
  * Requires at least: 		4.9
  * Requires PHP:      		7.2
  * Author:            		Fahad Mahmood & Alexandre Faustino
@@ -78,7 +78,7 @@ if(!class_exists('SlwMain')) {
 
 	class SlwMain{
 		// versions
-		public           $version  = '2.9.6';
+		public           $version  = '2.9.8';
 		public           $import_export_addon_version = '1.1.1';
 
 		// others
