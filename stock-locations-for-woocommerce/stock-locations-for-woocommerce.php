@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       		Stock Locations for WooCommerce
  * Description:       		This plugin will help you to manage WooCommerce Products stocks through locations.
- * Version:					2.9.8
+ * Version:					3.0.7
  * Requires at least: 		4.9
  * Requires PHP:      		7.2
  * Author:            		Fahad Mahmood & Alexandre Faustino
@@ -31,7 +31,7 @@ require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
 	
 
-global $wc_slw_hpos, $wc_slw_data, $wc_slw_pro, $wc_slw_premium_copy, $slw_plugin_settings, $slw_gkey, $slw_api_valid_keys, $slw_crons_valid_keys, $slw_widgets_arr, $slw_wc_stock_format, $slw_theme_name, $slw_order_id, $slw_logs_status, $slw_woocommerce_product_form_hooks;
+global $wc_slw_hpos, $wc_slw_data, $wc_slw_pro, $wc_slw_premium_copy, $slw_plugin_settings, $slw_gkey, $slw_api_valid_keys, $slw_crons_valid_keys, $slw_widgets_arr, $slw_wc_stock_format, $slw_theme_name, $slw_order_id, $slw_logs_status, $slw_woocommerce_product_form_hooks, $slw_wc_hide_out_of_stock, $slw_proceed_order_note;
 
 $slw_crons_valid_keys = array(				
 				'action' => array('type'=>'string', 'options'=>'update-stock'),
@@ -41,11 +41,13 @@ $slw_crons_valid_keys = array(
 			);
 
 //$wc_slw_hpos = OrderUtil::custom_orders_table_usage_is_enabled();
+$slw_wc_hide_out_of_stock = get_option( 'woocommerce_hide_out_of_stock_items' );
 $slw_logs_status = (get_option('slw_logs_status')==true);
 $slw_wc_stock_format = get_option('woocommerce_stock_format');
 $slw_gkey = get_option('slw-google-api-key');
 $slw_plugin_settings = get_option( 'slw_settings' );
 $slw_plugin_settings = is_array($slw_plugin_settings)?$slw_plugin_settings:array();
+$slw_proceed_order_note = ( isset($slw_plugin_settings['turn_order_notes_off_from_this_plugin']) && $slw_plugin_settings['turn_order_notes_off_from_this_plugin'] == 'yes' );
 $wc_slw_data = get_plugin_data(__FILE__, true, false);
 define( 'SLW_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'SLW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -78,7 +80,7 @@ if(!class_exists('SlwMain')) {
 
 	class SlwMain{
 		// versions
-		public           $version  = '2.9.8';
+		public           $version  = '3.0.7';
 		public           $import_export_addon_version = '1.1.1';
 
 		// others
@@ -111,14 +113,17 @@ if(!class_exists('SlwMain')) {
 							];	
 			
 				$slw_api_valid_keys = array(			
-					'id' => array('type'=>'int', 'options'=>'', 'tooltip'=>__('When item is a location, so ID is location_id and when item is product so ID is considered as a product_id.', 'stock-locations-for-woocommerce')),
-					'value' => array('type'=>'int', 'options'=>''),
-					'action' => array('type'=>'string', 'options'=>'get|set'),
-					'item' => array('type'=>'string', 'options'=>'location|product|stock|price', 'tooltip'=>__('When item is other than location and product so product_id or location_id would be required as a parameter, ID parameter will not be adequate.', 'stock-locations-for-woocommerce')),
-					'format' => array('type'=>'string', 'options'=>'json|default'),
-					'product_id'=>array('type'=>'int', 'options'=>'', 'tooltip'=>__('When item is other than product.', 'stock-locations-for-woocommerce')),
-					'location_id'=>array('type'=>'int', 'options'=>'', 'tooltip'=>__('When item is other than location.', 'stock-locations-for-woocommerce')),
+					'id' => array('type'=>'int', 'options'=>'<input type="text" placeholder="'.__('Insert Product ID', 'stock-locations-for-woocommerce').'" class="slw-api-id-input" /> <input type="button" value="Try" class="slw-api-id-try" />', 'tooltip'=>__('When item is a location, so ID is location_id and when item is product so ID is considered as a product_id.', 'stock-locations-for-woocommerce'), 'scope'=>''),
+					'value' => array('type'=>'int', 'options'=>'', 'scope'=>''),
+					'action' => array('type'=>'string', 'options'=>'get|set', 'scope'=>''),
+					'item' => array('type'=>'string', 'options'=>'location|product|stock|price', 'tooltip'=>__('When item is other than location and product so product_id or location_id would be required as a parameter, ID parameter will not be adequate.', 'stock-locations-for-woocommerce'), 'scope'=>''),
+					'format' => array('type'=>'string', 'options'=>'json|default', 'scope'=>''),
+					'product_id'=>array('type'=>'int', 'options'=>'', 'tooltip'=>__('When item is other than product.', 'stock-locations-for-woocommerce'), 'scope'=>''),
+					'location_id'=>array('type'=>'int', 'options'=>'', 'tooltip'=>__('When item is other than location.', 'stock-locations-for-woocommerce'), 'scope'=>''),
+					'location'=>array('type'=>'json', 'options'=>'location_id, stock_value', 'tooltip'=>__('For variable products.', 'stock-locations-for-woocommerce'), 'scope'=>'variable'),
 				);
+
+
 				
 				
 				$slw_widgets_arr = array(
@@ -155,7 +160,7 @@ if(!class_exists('SlwMain')) {
 					)
 				);		
 			
-			});
+			}, 1);
 			
 			// Instantiate classes
 			new SLW\SRC\Classes\SlwLocationTaxonomy;
@@ -226,7 +231,7 @@ if(!class_exists('SlwMain')) {
 		 */
 		public function enqueue_admin()
 		{
-			global $current_screen, $post, $slw_gkey, $wc_slw_pro;
+			global $current_screen, $post, $slw_gkey, $wc_slw_pro, $slw_api_valid_keys;
 
 					
 			wp_enqueue_style( 'slw-admin-styles', SLW_PLUGIN_DIR_URL . 'css/admin-style.css', array(), time() );
@@ -251,16 +256,18 @@ if(!class_exists('SlwMain')) {
 			
 			$data = array(
 				'slug'    => SLW_PLUGIN_SLUG,
+				'home_url' => trailingslashit( home_url() ),
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'slw_nonce' ),
 				'slw_gkey' => $slw_gkey,
 				'stock_locations' => false,
 				'wc_slw_pro' => $wc_slw_pro,
+				'wc_slw_api_valid_keys'=>$slw_api_valid_keys,
 				'wc_slw_premium_feature' => __('This is a premium feature!', 'stock-locations-for-woocommerce'),
 				'wc_slw_stock_reset_msg' => __('This action will restore the stock values to the product. Do you want to proceed?', 'stock-locations-for-woocommerce'),
 				'wc_slw_product_id' => (is_object($post)?$post->ID:0),
 				'wc_slw_location_status' => $slw_location_statuses,
-				'wc_slw_location_disabled_msg' => __('Enable this location from edit location page to save the stock value.', 'stock-locations-for-woocommerce'),
+				'wc_slw_location_disabled_msg' => __('Enable this location from edit location page to contribute in the total stock value.', 'stock-locations-for-woocommerce'),
 				'slw_import_export_tutorial' => __('CSV Import/Export Stock Locations?', 'stock-locations-for-woocommerce'),
 				'slw_error_occurred' => __('An error occurred while processing your request.', 'stock-locations-for-woocommerce'),
 			);
@@ -316,9 +323,10 @@ if(!class_exists('SlwMain')) {
 		 * @since 1.2.0
 		 * @return void
 		 */
+		 
 		public function enqueue_frontend()
 		{
-			global $post, $wpdb, $wc_slw_pro, $woocommerce;
+			global $post, $wpdb, $wc_slw_pro, $woocommerce, $slw_wc_hide_out_of_stock;
 			wp_enqueue_style( 'slw-frontend-styles', SLW_PLUGIN_DIR_URL . 'css/frontend-style.css', null, time() );
 			wp_enqueue_style( 'slw-common-styles', SLW_PLUGIN_DIR_URL . 'css/common-style.css', array(), time() );
 			
@@ -331,8 +339,9 @@ if(!class_exists('SlwMain')) {
 			$term_link = (!is_wp_error($term_link)?$term_link:'');
 			
 			$data = (is_array($this->plugin_settings)?$this->plugin_settings:array());
+			$data['slw_wc_hide_out_of_stock'] = $slw_wc_hide_out_of_stock;
 			$data['slw_location_selection'] = get_option('slw-location-selection', 'no');
-			$data['slw_location_selection_popup'] = (apply_filters('slw_location_selection_popup_display', is_front_page(), is_shop()) && function_exists('slw_location_selection_popup') && (get_option('slw-location-selection', 'no')=='yes')?slw_location_selection_popup():'');
+			$data['slw_location_selection_popup'] = (apply_filters('slw_location_selection_popup_display', is_front_page(), is_shop()) && function_exists('slw_location_selection_popup') && (get_option('slw-location-selection', 'no')=='yes')?slw_location_selection_popup($product_id):'');
 			$data['is_home_page'] = (is_home()?'yes':'no');
 			$data['is_front_page'] = (is_front_page()?'yes':'no');
 			$data['ajaxurl'] = admin_url( 'admin-ajax.php' );
@@ -357,7 +366,7 @@ if(!class_exists('SlwMain')) {
 			$data['slw_term_url'] = $term_link;
 			$data['slw_term_id'] = $term_id;
 			$data['slw_term_add_to_cart_url'] = $data['slw_term_url'].'?stock-location='.$data['slw_term_id'].'&add-to-cart=';
-			$data['stock_location_selected'] = ((isset($woocommerce->session) && $woocommerce->session->has_session())?$woocommerce->session->get('stock_location_selected'):0);
+			$data['stock_location_selected'] = get_slw_stock_location_selected();
 			
 			$stock_locations = array();
 			$stock_locations_obj = slw_get_locations('location', array(), false, $data['product_id']);
@@ -431,6 +440,7 @@ if(!class_exists('SlwMain')) {
 				
 				
 				$meta_obj = $wpdb->get_row('SELECT COUNT(*) AS total_locations FROM '.$wpdb->prefix.'postmeta pm WHERE pm.post_id="'.esc_sql($data['product_id']).'" AND pm.meta_key LIKE "_stock_at_%" AND pm.meta_value>0');
+				//pree($data['product_id']);
 				$wc_product = wc_get_product($data['product_id']);
 				
 				$terms = slw_get_locations('location', array(), true, $data['product_id']);
@@ -446,13 +456,17 @@ if(!class_exists('SlwMain')) {
 
 				$data['product_price_format'] = trim(str_replace(array(get_woocommerce_currency_symbol(), $product_price), array('_CURRENCY_SYMBOL', '_PRODUCT_PRICE'), strip_tags(wc_price($wc_product->get_price()))));
 				$data['product_price_raw'] = $product_price; 
+				$data['product_min_max_prices'] = slw_get_min_max_location_prices($wc_product);
 				$data['product_price'] = $wc_product->get_price(); 
 				$data['stock_status'][$data['product_id']] = $wc_product->get_availability();
 				$data['allow_backorder'][$data['product_id']] = get_post_meta($data['product_id'], '_backorders', true);
 				$data['product_price_decimals'] = apply_filters('slw_product_price_decimals', 2, $product_price);
 				
 				
-				
+				$extra_data = slw_get_product_stock_by_location($data['product_id'], $data['product_type'], $terms);
+				$data = array_merge( $data, $extra_data );
+
+				/*
 				if($data['product_type']=='variable' && $data['product_id']>0){
 				
 					$product_variations_ids = $wpdb->get_results("SELECT ID AS variation_id FROM $wpdb->posts WHERE post_parent IN (".$data['product_id'].") AND post_type='product_variation'");
@@ -493,7 +507,7 @@ if(!class_exists('SlwMain')) {
 						}
 						$data['stock_quantity'][$data['product_id']][0] = $data['stock_quantity_sum'];
 					}					
-				}
+				}*/
 				
 				
 				//pree($data);
