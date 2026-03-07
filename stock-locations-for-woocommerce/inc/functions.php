@@ -1210,23 +1210,30 @@ add_action('admin_init', 'wc_slw_admin_init');
 	
 	function slw_woocommerce_product_is_in_stock($instock_status = false, $product_id = 0, $string = false) {
 		global $product, $slw_plugin_settings, $wpdb, $woocommerce;
+		
+		if ($product_id instanceof WC_Product) {
+			$product = $product_id;
+			$product_id = $product->get_id();
+		} elseif (is_numeric($product_id) && $product_id > 0) {
+			$product = wc_get_product($product_id);
+		}
 	
 		// Detect selected store/location from session
 		$location_id = ((isset($woocommerce->session) && $woocommerce->session->has_session()) ? $woocommerce->session->get('stock_location_selected') : 0);
-		$instock_status = false;
+		//$instock_status = false; //07/03/2026
 		$location = get_term_by('id', $location_id, 'location');
 		$store_name = ((is_object($location) && isset($location->term_id)) ? $location->name : '');
 		//pree($location_id.' - '.$store_name);
 	
-		$product = (is_numeric($product_id) ? wc_get_product($product_id) : $product);
+		//$product = (is_numeric($product_id) ? wc_get_product($product_id) : $product); //07/03/2026
 		
-		$type = (is_object($product) ? $product->get_type() : '');
-		if ( !is_numeric($product_id) && is_object($product) && method_exists($product, 'get_id') ) {
+		//$type = (is_object($product) ? $product->get_type() : '');
+		/*if ( !is_numeric($product_id) && is_object($product) && method_exists($product, 'get_id') ) {
 			$product_id = $product->get_id();
-		}
+		}*/
 		//pree($product);
 		
-		
+		$type = $product->get_type();
 		
 		
 		switch ($type) {
@@ -1242,7 +1249,7 @@ add_action('admin_init', 'wc_slw_admin_init');
 							// Check store/location-based stock if available
 							if ($location_id) {
 								$stock_at_location = get_post_meta($variation_id, '_stock_at_' . $location_id, true);
-								$instock_statuses = ( (float)$stock_at_location > 0 );
+								$instock_status = ( (float)$stock_at_location > 0 );
 							} else {
 								/*$instock_statuses = (
 									(
@@ -1267,7 +1274,7 @@ add_action('admin_init', 'wc_slw_admin_init');
 								
 							}
 	
-							$variations_stock_status[$variation_id] = $instock_statuses;
+							$variations_stock_status[$variation_id] = $instock_status;
 						}
 						$instock_status = (array_sum($variations_stock_status) > 0);
 					}
@@ -1662,7 +1669,7 @@ add_action('admin_init', 'wc_slw_admin_init');
 				
 
 			
-				if($stock_qty>0){
+				/*if($stock_qty>0){ //07/03/2026
 					// Set the stock status to "in stock"
 					$product->set_stock_status('instock');
 					$product->save();
@@ -1672,9 +1679,24 @@ add_action('admin_init', 'wc_slw_admin_init');
 					$product->set_stock_status('outofstock');
 					$product->save();
 
-				}
+				}*/
 
+				if ($stock_qty > 0) {
+					$product->set_stock_status('instock');
+				} else {
+					// Respect backorders
+					if ($product->backorders_allowed()) {
+						$product->set_stock_status('onbackorder');
+					} else {
+						$product->set_stock_status('outofstock');
+					}
+				}
 				
+				$product->save();
+				
+				if ($stock_qty > 0) {
+					slw_fix_outofstock_terms($product_id);
+				}
 				
 			
 				// Save the changes
