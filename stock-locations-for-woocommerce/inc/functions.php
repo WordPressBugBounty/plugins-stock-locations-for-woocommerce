@@ -1309,8 +1309,7 @@ add_action('admin_init', 'wc_slw_admin_init');
 		}
 		if (is_bool($instock_status) && $instock_status && $product_id) {
 			update_post_meta($product_id, '_stock_status', 'instock');
-		}	
-		if ($string) {
+		}else{
 			$instock_status = ($instock_status ? 'instock' : 'outofstock');
 		}
 	
