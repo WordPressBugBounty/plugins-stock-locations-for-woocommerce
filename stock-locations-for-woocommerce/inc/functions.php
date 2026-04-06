@@ -1278,6 +1278,13 @@ add_action('admin_init', 'wc_slw_admin_init');
 					
 					//pree($stock_at_location.' - '.$instock_status);
 				} else {
+					$all_locations = get_terms( array( 'taxonomy' => 'location', 'hide_empty' => false ) );
+					$total_stock   = 0;
+					foreach ( $all_locations as $loc ) {
+						$total_stock += (float) get_post_meta( $product_id, '_stock_at_' . $loc->term_id, true );
+					}
+					$instock_status = ( $total_stock > 0 );
+				}/*else {
 					
 					$instock_status = (
 							$product_obj->get_manage_stock() 
@@ -1294,7 +1301,7 @@ add_action('admin_init', 'wc_slw_admin_init');
 			
 				
 					
-				}
+				}*/
 			break;
 			default:
             	$instock_status = false;
@@ -1307,12 +1314,18 @@ add_action('admin_init', 'wc_slw_admin_init');
 		if ($everything_stock_status_to_instock) {
 			$instock_status = true;
 		}
-		if (is_bool($instock_status) && $instock_status && $product_id) {
+		/*if (is_bool($instock_status) && $instock_status && $product_id) {
 			update_post_meta($product_id, '_stock_status', 'instock');
 		}else{
 			$instock_status = ($instock_status ? 'instock' : 'outofstock');
 		}
 	
+		return $instock_status;*/
+		
+		$instock_status = (bool) $instock_status;
+		if ( $product_id ) {
+			update_post_meta( $product_id, '_stock_status', $instock_status ? 'instock' : 'outofstock' );
+		}
 		return $instock_status;
 	}
 
