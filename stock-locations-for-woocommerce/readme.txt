@@ -4,7 +4,7 @@ Tags: woocommerce, stock, stock locations, simple product, variable products
 Requires at least: 4.9
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 3.1.3
+Stable tag: 3.1.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -169,8 +169,11 @@ On settings page you can define a number. If location stock value will be less t
 
 
 == Changelog ==
+= 3.1.4 =
+* Fix: Bug with variation stock status querying (PR #171). Variations were getting their is_in_stock queried, and reporting incorrectly they were out of stock. [Thanks to kennydude / Joe Simpson][30/04/2026]
+
 = 3.1.1 =
-* Fix: Corrected stock status calculation when all locations have zero stock to prevent false "in stock" state. [Thankst to @armanuniverse][06/04/2026]
+* Fix: Corrected stock status calculation when all locations have zero stock to prevent false "in stock" state. [Thanks to @armanuniverse][06/04/2026]
 * Fix: Ensured proper handling and saving of _stock_status (instock/outofstock) in database.
 * Improvement: Replaced unreliable stock status checks with aggregated per-location stock calculation.
 * Improvement: Standardized return values to boolean for accurate WooCommerce compatibility.
